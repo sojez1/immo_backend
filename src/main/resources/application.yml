@@ -1,0 +1,42 @@
+server:
+    servlet:
+      context-path: /jpsimmo
+    port: 8182
+
+
+spring:
+  application:
+    name: immo_backend
+  profiles:
+      active: dev
+
+  messages:
+    basename: internationalisation/messages
+    encoding: UTF-8
+
+  mail:
+    host: ${mail-host}
+    port: ${mail-port}
+    username: ${mail-username}
+    password: ${mail-password}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+        - bean
+        - metrics
+  
+    
+    
+
+      
+
