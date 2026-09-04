@@ -1,18 +1,24 @@
 package com.jpstechno.immo_backend.dto;
 
+import java.time.LocalDate;
+
 public record UtilisateurDtoResponse(
-        Long id,
+                Long userID,
 
-        String nom,
+                String nom,
 
-        String prenoms,
+                String prenoms,
 
-        String pseudo,
+                String pseudo,
 
-        String email,
+                String email,
 
-        boolean actif,
+                boolean actif,
 
-        boolean emailValide) {
+                boolean emailValide,
+
+                LocalDate dateInscription,
+
+                String photoUrl) {
 
 }
