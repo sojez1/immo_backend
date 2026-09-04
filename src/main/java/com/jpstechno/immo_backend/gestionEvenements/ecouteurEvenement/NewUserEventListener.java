@@ -16,6 +16,7 @@ import com.jpstechno.immo_backend.gestionEvenements.mesEvenements.NewUserCreated
 import com.jpstechno.immo_backend.modeles.UserTemporaireToken;
 import com.jpstechno.immo_backend.repositories.TokenRepositories;
 import com.jpstechno.immo_backend.utilitaires.Coursiers;
+import com.jpstechno.immo_backend.utilitaires.ParametresApplication;
 
 @Component
 public class NewUserEventListener {
@@ -30,7 +31,7 @@ public class NewUserEventListener {
         this.tokenRepo = tokenRepo;
     }
 
-    String controlleurPathForEmailVerification = "/utilisateurs/verifier/email";
+    String controlleurPathForEmailVerification = "/utilisateurs/profil/email/verifier";
 
     @EventListener
     @Async
@@ -64,8 +65,9 @@ public class NewUserEventListener {
         String objetMessage = "Validation de votre courriel sur JPS-Immo";
         String destinataire = createdUser.email();
         final Context thymleafContext = new Context();
-        thymleafContext.setVariable("prenom", createdUser.prenoms());
+        thymleafContext.setVariable("prenom", createdUser.prenoms() + " " + createdUser.nom());
         thymleafContext.setVariable("verificationUrl", confirmationUrl);
+        thymleafContext.setVariable("delai", String.valueOf(ParametresApplication.DUREE_TOKEN_EMAIL_VALIDATION));
 
         String corpsMessage = templateEngine.process("emails/InscriptionEmailValidation.html", thymleafContext);
         coursier.envoyerMail(objetMessage, corpsMessage, destinataire);

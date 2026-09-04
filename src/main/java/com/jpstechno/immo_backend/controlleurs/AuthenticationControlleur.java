@@ -8,7 +8,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -81,7 +80,8 @@ public class AuthenticationControlleur {
 
     @GetMapping("/profil/email/verifier")
     public ResponseEntity<?> verifierEmail(@RequestParam Long id, @RequestParam String token) {
-        return userService.verifierEmail(id, token);
+        String resultat = userService.verifierEmail(id, token);
+        return ResponseEntity.ok(resultat);
     }
 
     @GetMapping("/profil/:id")

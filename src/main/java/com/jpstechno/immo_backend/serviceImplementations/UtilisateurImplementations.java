@@ -2,13 +2,15 @@ package com.jpstechno.immo_backend.serviceImplementations;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,10 +19,15 @@ import com.jpstechno.immo_backend.dto.UtilisateurDtoRequest;
 import com.jpstechno.immo_backend.dto.UtilisateurDtoResponse;
 import com.jpstechno.immo_backend.dtoMappers.UtilisateurDtoMapper;
 import com.jpstechno.immo_backend.enumerations.TrieOrderEnums;
+import com.jpstechno.immo_backend.enumerations.UserRole;
 import com.jpstechno.immo_backend.gestionEvenements.mesEvenements.NewUserCreatedEvent;
+import com.jpstechno.immo_backend.modeles.UserTemporaireToken;
 import com.jpstechno.immo_backend.modeles.Utilisateurs;
+import com.jpstechno.immo_backend.repositories.TokenRepositories;
 import com.jpstechno.immo_backend.repositories.UtilisateurRepositories;
 import com.jpstechno.immo_backend.services.UtilisateurService;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class UtilisateurImplementations implements UtilisateurService {
@@ -28,20 +35,24 @@ public class UtilisateurImplementations implements UtilisateurService {
     private final UtilisateurRepositories utilisateurRepo;
     private final PasswordEncoder passwordEncoder;
     private final ApplicationEventPublisher eventPublisher;
+    private final TokenRepositories userTokenRepo;
     // private final UtilisateurDtoMapper utilisateurDtoMapper;
 
     public UtilisateurImplementations(UtilisateurRepositories utilisateurRepo, PasswordEncoder passwordEncoder,
-            ApplicationEventPublisher eventPublisher) {
+            ApplicationEventPublisher eventPublisher, TokenRepositories userTokenRepo) {
         this.utilisateurRepo = utilisateurRepo;
         this.passwordEncoder = passwordEncoder;
         this.eventPublisher = eventPublisher;
+        this.userTokenRepo = userTokenRepo;
         // this.utilisateurDtoMapper = utilisateurDtoMapper;
     }
 
     @Override
+    @Transactional
     public UtilisateurDtoResponse createNewUser(UtilisateurDtoRequest utilisateurData, MultipartFile photo) {
 
         Utilisateurs newUserData = UtilisateurDtoMapper.INSTANCE.dtoRequestToUtilisateurs(utilisateurData);
+        newUserData.setRoles(Set.of(UserRole.UTILISATEUR)); // role UTILISATEUR par defaut
 
         // Crypter le mot de passe avant de le sauvegarder
         String hashedPassword = passwordEncoder.encode(newUserData.getPassword());
@@ -143,10 +154,27 @@ public class UtilisateurImplementations implements UtilisateurService {
     }
 
     @Override
-    public ResponseEntity<?> verifierEmail(Long id, String token) {
+    @Transactional
+    public String verifierEmail(Long id, String token) {
         String result = "";
+        Optional<UserTemporaireToken> tokenVerification = userTokenRepo.findByIdAndToken(id, token);
+        if (tokenVerification.isPresent() && tokenVerification.get().getExpireAT().isAfter(LocalDateTime.now())) {
+            // si token present et non expire
+            Utilisateurs utilisateur = utilisateurRepo.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Utilisateur not found dans notre systeme"));
+            utilisateur.setEmailValide(true);
+            utilisateur.setActif(true);
+            utilisateurRepo.save(utilisateur);
 
-        return ResponseEntity.ok(result);
+            // supprimer en meme temps le token dans la base de donnees
+            userTokenRepo.deleteByIdAndToken(id, token);
+            result = "validation du token reussie";
+
+        } else {
+            result = "Echec de la validation du token";
+        }
+
+        return result;
     }
 
 }

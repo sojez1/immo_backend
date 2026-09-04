@@ -1,7 +1,6 @@
 package com.jpstechno.immo_backend.services;
 
 import org.springframework.data.domain.Page;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.jpstechno.immo_backend.dto.UtilisateurDtoRequest;
@@ -17,5 +16,5 @@ public interface UtilisateurService {
     Page<UtilisateurDtoResponse> getListeUtilisateurs(int numPage, int pageSize, String champAtrier,
             TrieOrderEnums ordreTrie);
 
-    ResponseEntity<?> verifierEmail(Long id, String token);
+    String verifierEmail(Long id, String token);
 }

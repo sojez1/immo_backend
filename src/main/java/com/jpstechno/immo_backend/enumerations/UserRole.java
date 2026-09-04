@@ -11,6 +11,7 @@ package com.jpstechno.immo_backend.enumerations;
 public enum UserRole {
     LOCATAIRE,
     PROPRIETAIRE,
+    UTILISATEUR, // Par defaut suite inscription. N'est ni locataire, ni proprietaire
     WEBMASTER,
     ADMINISTRATEUR
 }
